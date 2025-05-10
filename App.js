@@ -1,31 +1,31 @@
 // App.js - Main app component with navigation setup
-import React, { useState, useEffect } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import React, { useEffect, useState } from "react";
 import { StatusBar } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Ionicons } from "@expo/vector-icons";
-import { AuthContext } from "./context/AuthContext";
 import { AlertProvider } from "./context/AlertContext";
+import { AuthContext } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
 
 // Auth screens
-import LoginScreen from "./screens/auth/LoginScreen";
 import ForgotPasswordScreen from "./screens/auth/ForgotPasswordScreen";
+import LoginScreen from "./screens/auth/LoginScreen";
 
 // Main app screens
+import AlertNotification from "./components/common/AlertNotification";
+import AnalyticsScreen from "./screens/analytics/AnalyticsScreen";
 import DashboardScreen from "./screens/dashboard/DashboardScreen";
-import OrdersScreen from "./screens/orders/OrdersScreen";
-import OrderDetailScreen from "./screens/orders/OrderDetailScreen";
-import MenuScreen from "./screens/menu/MenuScreen";
 import AddMenuItemScreen from "./screens/menu/AddMenuItemScreen";
 import EditMenuItemScreen from "./screens/menu/EditMenuItemScreen";
-import ProfileScreen from "./screens/profile/ProfileScreen";
+import MenuScreen from "./screens/menu/MenuScreen";
+import OrderDetailScreen from "./screens/orders/OrderDetailScreen";
+import OrdersScreen from "./screens/orders/OrdersScreen";
 import EditProfileScreen from "./screens/profile/EditProfileScreen";
-import AnalyticsScreen from "./screens/analytics/AnalyticsScreen";
+import ProfileScreen from "./screens/profile/ProfileScreen";
 import SplashScreen from "./screens/SplashScreen";
-import AlertNotification from "./components/common/AlertNotification";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -106,22 +106,35 @@ export default function App() {
   const [userInfo, setUserInfo] = useState(null);
 
   const authContext = {
-    signIn: async (token, user) => {
+    signIn: async (token, user, refreshToken) => {
       setIsLoading(true);
       try {
+        if (!token || !user || !refreshToken) {
+          console.error("Missing required data for sign in:", {
+            token,
+            user,
+            refreshToken,
+          });
+          throw new Error("Missing required data for sign in");
+        }
+
         await AsyncStorage.setItem("userToken", token);
+        await AsyncStorage.setItem("refreshToken", refreshToken);
         await AsyncStorage.setItem("userInfo", JSON.stringify(user));
         setUserToken(token);
         setUserInfo(user);
       } catch (e) {
-        console.log("Error signing in:", e);
+        console.error("Error signing in:", e);
+        throw e; // Re-throw to handle in the login screen
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     },
     signOut: async () => {
       setIsLoading(true);
       try {
         await AsyncStorage.removeItem("userToken");
+        await AsyncStorage.removeItem("refreshToken");
         await AsyncStorage.removeItem("userInfo");
         setUserToken(null);
         setUserInfo(null);
@@ -155,7 +168,11 @@ export default function App() {
   }, []);
 
   if (isLoading) {
-    return <SplashScreen />;
+    return (
+      <ThemeProvider>
+        <SplashScreen />
+      </ThemeProvider>
+    );
   }
 
   return (

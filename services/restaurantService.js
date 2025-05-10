@@ -1,6 +1,9 @@
 import api from "./api";
 
 export const getRestaurantDetails = async (restaurantId) => {
+  if (!restaurantId) {
+    throw new Error("Restaurant ID is required");
+  }
   try {
     const response = await api.get(`/api/restaurants/${restaurantId}`);
     return response.data;
@@ -10,6 +13,9 @@ export const getRestaurantDetails = async (restaurantId) => {
 };
 
 export const updateRestaurantDetails = async (restaurantId, details) => {
+  if (!restaurantId) {
+    throw new Error("Restaurant ID is required");
+  }
   try {
     const response = await api.put(`/api/restaurants/${restaurantId}`, details);
     return response.data;
@@ -19,6 +25,9 @@ export const updateRestaurantDetails = async (restaurantId, details) => {
 };
 
 export const toggleRestaurantStatus = async (restaurantId) => {
+  if (!restaurantId) {
+    throw new Error("Restaurant ID is required");
+  }
   try {
     const response = await api.put(
       `/api/restaurants/${restaurantId}/toggle-status`
@@ -33,6 +42,9 @@ export const getRestaurantAnalytics = async (
   restaurantId,
   period = "30days"
 ) => {
+  if (!restaurantId) {
+    throw new Error("Restaurant ID is required");
+  }
   try {
     const response = await api.get(
       `/api/restaurants/${restaurantId}/analytics?period=${period}`

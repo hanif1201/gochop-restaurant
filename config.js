@@ -1,4 +1,4 @@
-export const API_BASE_URL = "http://192.168.1.100:5000"; // Replace with your API URL
+export const API_BASE_URL = "http://192.168.0.186:5000"; // Replace with your API URL
 
 // Constants for the app
 export const ORDER_STATUSES = {
